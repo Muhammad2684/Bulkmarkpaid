@@ -1,0 +1,54 @@
+<!-- 
+  This is now a self-contained component.
+  It includes its own styles.
+-->
+<style>
+    /* 1. Style the main <nav> bar itself */
+    nav {
+        background-color: #0f0f1d;
+        padding: 0 40px; 
+        border-bottom: 1px solid #33334d;
+        display: flex;
+        align-items: center; /* This handles VERTICAL centering */
+        justify-content: center; /* <-- THIS IS THE KEY CHANGE! It handles HORIZONTAL centering */
+        height: 60px;
+    }
+
+    /* 2. Style the navigation links container */
+    .nav-links {
+        display: flex;
+        gap: 15px; /* Adds space between the links */
+    }
+
+    /* 3. Style each individual link */
+    .nav-links a {
+        color: #e0e0e0;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 20px 15px;
+        transition: all 0.3s ease-in-out;
+        border-bottom: 3px solid transparent;
+    }
+
+    /* 4. Create the hover effect */
+    .nav-links a:hover {
+        color: #ffffff;
+        border-bottom-color: #e94560;
+    }
+
+    /* 5. Style the ACTIVE page link */
+    .nav-links a.active {
+        color: #ffffff;
+        border-bottom-color: #e94560;
+    }
+</style>
+
+<!-- The HTML for the navigation bar -->
+<nav>
+    <div class="nav-links">
+        <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="/scan-pack" class="{% if active_page == 'scan' %}active{% endif %}">Scan & Pack</a>
+        <a href="/mark-paid" class="{% if active_page == 'paid' %}active{% endif %}">Mark as Paid</a>
+        <a href="/inventory" class="{% if active_page == 'inventory' %}active{% endif %}">Inventory Alerts</a>
+    </div>
+</nav>

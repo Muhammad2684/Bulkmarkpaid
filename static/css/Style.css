@@ -1,0 +1,437 @@
+/* Color Variables - Makes it easy to change your theme later */
+:root {
+    --bg-primary: #1a1a2e; /* Deep dark blue/charcoal */
+    --bg-secondary: #0f0f1d; /* Even darker for cards/sections */
+    --text-light: #e0e0e0; /* Light gray for main text */
+    --text-dark: #b0b0b0; /* Slightly darker light gray for secondary text */
+    --accent-color: #e94560; /* Muted red/pink accent */
+    --border-color: #33334d; /* Slightly lighter dark for borders */
+    --button-bg: #e94560;
+    --button-text: #ffffff;
+    --input-bg: #2b2b40;
+    --input-border: #44446b;
+
+    --success-bg: #28a745; /* Darker green for dark theme success */
+    --success-text: #ffffff; /* White text for success */
+    --error-bg: #dc3545; /* Darker red for dark theme error */
+    --error-text: #ffffff; /* White text for error */
+    --item-bg: #33334d; /* Darker background for list items */
+    --item-packed-bg: #4CAF50; /* A clear green for packed items */
+    --item-packed-text: #ffffff;
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif; /* Or another clean sans-serif font */
+    background-color: var(--bg-primary);
+    color: var(--text-light);
+    margin: 0;
+    padding: 0;
+    padding-bottom: 60px;
+    min-height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    line-height: 1.6; /* Improved readability */
+}
+
+.app-header {
+    background-color: var(--bg-secondary);
+    width: 100%;
+    padding: 20px 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 2em;
+}
+
+.app-main {
+    flex-grow: 1; /* Takes up available space */
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1px 0;
+    text-align: center;
+    color: var(--text-dark);
+    font-size: 0.85em;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* --- Your existing styles adapted for dark theme --- */
+.container {
+    background-color: var(--bg-secondary); /* Darker background for the main container */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Darker, more pronounced shadow */
+    width: 100%; /* Use 100% width within app-main's max-width */
+    margin: 0 auto; /* Center it */
+    box-sizing: border-box;
+}
+
+.container_right {
+    flex-grow: 1;
+}
+
+input[type="text"] {
+    width: calc(100% - 40px); /* Keep original width logic */
+    padding: 12px; /* Slightly more padding */
+    margin-bottom: 15px; /* More space */
+    border: 1px solid var(--input-border);
+    border-radius: 6px; /* Slightly more rounded */
+    font-size: 1.1em; /* Slightly larger font */
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+input[type="text"]:focus {
+    border-color: var(--accent-color); /* Highlight on focus */
+    box-shadow: 0 0 0 3px rgba(var(--accent-color), 0.2); /* Soft glow */
+}
+
+button {
+    padding: 12px 25px; /* Larger buttons */
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px; /* Match input radius */
+    cursor: pointer;
+    font-size: 1.1em; /* Larger font */
+    margin-right: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover and press */
+}
+button:hover {
+    filter: brightness(0.9); /* Subtle darken on hover */
+    transform: translateY(-2px); /* Slight lift */
+}
+button:active {
+    transform: translateY(0); /* Press down effect */
+}
+button:disabled {
+    background-color: var(--border-color); /* Muted for disabled */
+    color: var(--text-dark);
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+}
+
+.custom-btn {
+    padding: 12px 25px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-right: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.custom-btn:hover {
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+}
+
+.custom-btn:active {
+    transform: translateY(0);
+}
+
+.custom-btn:disabled {
+    background-color: var(--border-color);
+    color: var(--text-dark);
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+}
+
+
+.order-details {
+    margin-top: 25px; /* More spacing */
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    color: var(--text-light);
+}
+.order-details h3 {
+    color: var(--accent-color); /* Use accent color for headings */
+    margin-bottom: 10px;
+}
+.order-details p {
+    margin-bottom: 5px;
+}
+.order-details h4 {
+    margin-top: 20px;
+    color: var(--text-light);
+}
+
+.item-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+.item-list li {
+    background-color: var(--item-bg); /* Darker background for list items */
+    margin-bottom: 10px;
+    padding: 15px; /* More padding */
+    border-radius: 8px; /* More rounded */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Smooth transition for packed state */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Subtle shadow */
+}
+.item-list li.packed {
+    background-color: var(--item-packed-bg); /* Green for packed */
+    color: var(--item-packed-text);
+}
+.item-quantity {
+    font-weight: bold;
+    font-size: 1.2em; /* Slightly larger */
+    margin-right: 15px; /* More spacing */
+    min-width: 100px; /* Ensure enough space for the text */
+    text-align: right;
+}
+.counter-controls button {
+    padding: 8px 15px; /* Smaller buttons for controls */
+    font-size: 1em;
+    margin: 0 5px;
+    background-color: var(--input-border); /* Use a subtle button color */
+    color: var(--text-light);
+}
+.counter-controls button:hover {
+    background-color: var(--accent-color);
+    transform: none; /* No lift for these small buttons */
+}
+
+.status-message {
+    margin-top: 20px;
+    padding: 15px; /* More padding */
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+.status-message.success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+.status-message.error {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+}
+.status-message.info {
+    background-color: var(--input-bg); /* Use an existing dark background for info */
+    color: var(--text-light);
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: var(--text-dark);
+}
+
+/* Form styling for a clean look */
+.scan-form {
+    display: flex;
+    gap: 10px; /* Space between input and buttons */
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+.scan-form input[type="text"] {
+    flex-grow: 1; /* Input takes most of the space */
+    width: auto; /* Override calc(100%-22px) for flexbox */
+    margin-bottom: 0; /* No bottom margin in flex container */
+}
+.scan-form button {
+    margin-right: 0; /* Remove right margin in flex container */
+}
+
+.image-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  padding-top: 60px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.8);
+}
+
+.image-modal .modal-content {
+  margin: auto;
+  display: block;
+  max-width: 90%;
+  max-height: 80%;
+  border: 4px solid white;
+  border-radius: 10px;
+}
+
+.image-modal .close {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-backdrop.show {
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.4);
+}
+.modal-content {
+    animation: popup-fade 0.3s ease-in-out;
+}
+@keyframes popup-fade {
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    color: var(--text-light);
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    animation: popup-fade 0.3s ease-in-out;
+}
+
+.modal-header, .modal-footer {
+    border-color: var(--border-color);
+}
+
+.modal-title {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.alert-info {
+    background-color: var(--accent-color);
+    color: var(--button-text);
+    border: none;
+    font-weight: bold;
+    text-align: center;
+}
+
+.order-list-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-light);
+    background-color: var(--bg-secondary);
+    margin-top: 10px;
+    border-radius: 6px 6px 0 0;
+}
+
+.order-total {
+    margin-top: 10px;
+    font-size: 1.1em;
+    color: var(--text-light);
+    text-align: right;
+}
+
+
+/* FORCE table background and text color */
+/* Increased specificity for table elements within the modal */
+#csvModal.modal.fade .modal-dialog .modal-content table.table {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-light) !important;
+}
+
+#csvModal.modal.fade .modal-dialog .modal-content table.table thead th {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-light) !important;
+  border-color: var(--border-color) !important;
+}
+
+#csvModal.modal.fade .modal-dialog .modal-content table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--bg-primary) !important;
+}
+
+#csvModal.modal.fade .modal-dialog .modal-content table.table-bordered td,
+#csvModal.modal.fade .modal-dialog .modal-content table.table-bordered th {
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Ensure the modal content itself is dark */
+#csvModal.modal.fade .modal-dialog .modal-content {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-light) !important;
+}
+
+
+
+
+
+
+/* Row-specific colors */
+tr[data-valid="true"] {
+    background-color: rgba(40, 167, 69, 0.15); /* Greenish background */
+}
+tr[data-valid="false"] {
+    background-color: rgba(220, 53, 69, 0.15); /* Reddish background */
+}
+
+
+
+
+
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .scan-form {
+        flex-direction: column; /* Stack input and buttons */
+    }
+    .scan-form input[type="text"] {
+        width: 100%;
+    }
+    .scan-form button {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px; /* Add space between stacked buttons */
+    }
+    .item-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .item-quantity {
+        width: 100%;
+        text-align: left;
+        margin-right: 0;
+    }
+    .counter-controls {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end; /* Align controls to the right */
+    }
+    .item-list li.packed {
+    background-color: var(--item-packed-bg);
+    color: var(--item-packed-text);
+    }
+    .item-list li.error {
+        background-color: var(--error-bg);
+        color: var(--error-text);
+    }
+
+
+}

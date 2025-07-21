@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title from index.html -->
+    <title>Bulk Mark as Paid</title>
+    
+    <!-- CSS links from base.html -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app">
+
+    <!-- Header from base.html, with content from index.html -->
+    <div class="app-header">
+        <h1 style="text-align:center;">Bulk Mark as Paid</h1>
+    </div>
+
+    <!-- Main content area from base.html, with content from index.html -->
+    <div class="app-main">
+        <div class="container">
+            <div class="scan-form">
+                <input type="text" id="orderInput" placeholder="Enter Order Number">
+                <button onclick="addOrder()">Add Order</button>
+                <input type="file" id="csvInput" accept=".csv" style="display: none;" onchange="handleCsvUpload(this.files[0])">
+                <button onclick="document.getElementById('csvInput').click()">Upload CSV</button>
+                <button onclick="markAllAsPaid()">Mark All as Paid</button>
+                <button onclick="clearAll()">Clear</button>
+            </div>
+        
+            <div id="statusMessage" class="status-message" style="display:none;"></div>
+            <div id="orderListHeader" class="order-list-header" style="display: none; display: flex; gap: 10px; align-items: center;">
+                <div style="width: 40px; text-align: left;"><strong>#</strong></div>
+                <div style="flex-grow: 1; text-align: left;"><strong>Order</strong></div>
+                <div style="min-width: 120px; text-align: right;"><strong>Amount</strong></div>
+            </div>
+        
+            <ul id="orderList" class="item-list"></ul>
+        
+            <div id="orderTotal" class="order-total" style="display: none;">
+                <strong>Total: Rs. <span id="totalAmount">0</span></strong>
+            </div>
+          
+            <!-- CSV Modal -->
+            <div class="modal fade" id="csvModal" tabindex="-1" aria-labelledby="csvModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- centered + large -->
+                <div class="modal-content shadow-lg rounded-4">
+                  <div class="modal-header">
+                    <h5 class="modal-title">CSV Order Check Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="csv-summary" class="alert alert-info" role="alert" style="display: none;"></div>
+                    <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                        <div id="csv-summary" class="alert alert-info" role="alert" style="display: none;"></div>
+                        <ul id="csv-list" class="item-list"></ul>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button id="confirmCsvOrders" class="custom-btn">Add to List</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        
+        </div>
+        
+        <!-- Script from index.html's content block -->
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </div>
+
+    <!-- Footer from base.html -->
+    <div class="app-footer">
+        {%include "Navigation.html"%}
+    </div>
+
+    <!-- Script from base.html -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
