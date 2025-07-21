@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title from index.html -->
     <title>Bulk Mark as Paid</title>
     
-    <!-- CSS links from base.html -->
+    <!-- Bootstrap and Custom CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="app">
 
-    <!-- Header from base.html, with content from index.html -->
+    <!-- Header -->
     <div class="app-header">
         <h1 style="text-align:center;">Bulk Mark as Paid</h1>
     </div>
 
-    <!-- Main content area from base.html, with content from index.html -->
+    <!-- Main Content Area -->
     <div class="app-main">
         <div class="container">
+            <!-- Form Controls -->
             <div class="scan-form">
                 <input type="text" id="orderInput" placeholder="Enter Order Number">
                 <button onclick="addOrder()">Add Order</button>
@@ -29,6 +29,7 @@
                 <button onclick="clearAll()">Clear</button>
             </div>
         
+            <!-- Status and List Headers -->
             <div id="statusMessage" class="status-message" style="display:none;"></div>
             <div id="orderListHeader" class="order-list-header" style="display: none; display: flex; gap: 10px; align-items: center;">
                 <div style="width: 40px; text-align: left;"><strong>#</strong></div>
@@ -36,26 +37,26 @@
                 <div style="min-width: 120px; text-align: right;"><strong>Amount</strong></div>
             </div>
         
+            <!-- The list of orders will appear here -->
             <ul id="orderList" class="item-list"></ul>
         
+            <!-- Order Total -->
             <div id="orderTotal" class="order-total" style="display: none;">
                 <strong>Total: Rs. <span id="totalAmount">0</span></strong>
             </div>
           
-            <!-- CSV Modal -->
+            <!-- CSV Upload Review Modal -->
             <div class="modal fade" id="csvModal" tabindex="-1" aria-labelledby="csvModalLabel" aria-hidden="true">
-              <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- centered + large -->
+              <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content shadow-lg rounded-4">
                   <div class="modal-header">
                     <h5 class="modal-title">CSV Order Check Results</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    <!-- The redundant inner modal-body div has been removed -->
                     <div id="csv-summary" class="alert alert-info" role="alert" style="display: none;"></div>
-                    <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
-                        <div id="csv-summary" class="alert alert-info" role="alert" style="display: none;"></div>
-                        <ul id="csv-list" class="item-list"></ul>
-                    </div>
+                    <ul id="csv-list" class="item-list"></ul>
                   </div>
                   <div class="modal-footer">
                     <button id="confirmCsvOrders" class="custom-btn">Add to List</button>
@@ -64,18 +65,18 @@
               </div>
             </div>
         
-        </div>
-        
-        <!-- Script from index.html's content block -->
-        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    </div>
+        </div> <!-- End of .container -->
+    </div> <!-- End of .app-main -->
 
-    <!-- Footer from base.html -->
+    <!-- Footer with Navigation -->
     <div class="app-footer">
-        {%include "Navigation.html"%}
+        {% include "Navigation.html" %}
     </div>
 
-    <!-- Script from base.html -->
+    <!-- Your custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Bootstrap JavaScript Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
