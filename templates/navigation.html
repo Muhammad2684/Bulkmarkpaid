@@ -46,9 +46,11 @@
 <!-- The HTML for the navigation bar -->
 <nav>
     <div class="nav-links">
-        <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
-        <a href="/scan-pack" class="{% if active_page == 'scan' %}active{% endif %}">Scan and Pack</a>
-        <a href="/mark-paid" class="{% if active_page == 'paid' %}active{% endif %}">Mark as Paid</a>
-        <a href="/mark-returned" class="{% if active_page == 'inventory' %}active{% endif %}">Mark as Returned</a>
+        <a href="https://dashboard-pax1.onrender.com" class="{% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="https://scan-and-pack.onrender.com" class="{% if active_page == 'scan' %}active{% endif %}">Scan and Pack</a>
+        <a href="https://bulkmarkpaid.onrender.com" class="{% if active_page == 'paid' %}active{% endif %}">Mark as Paid</a>
+        <a href="https://markasreturned.onrender.com" class="{% if active_page == 'returned' %}active{% endif %}">Mark as Returned</a>
+        <a href="https://dashboard-pax1.onrender.com/logout" class="{% if active_page == 'logout' %}active{% endif %}">Logout</a>
+        <a href="https://dashboard-pax1.onrender.com/login" class="{% if active_page == 'login' %}active{% endif %}">Login</a>
     </div>
 </nav>
