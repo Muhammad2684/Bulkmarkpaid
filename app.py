@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime
@@ -12,9 +13,28 @@ SHOPIFY_STORE_URL = os.getenv('SHOPIFY_STORE_URL')
 SHOPIFY_ACCESS_TOKEN = os.getenv('SHOPIFY_ACCESS_TOKEN')
 SHOPIFY_API_VERSION = os.getenv('SHOPIFY_API_VERSION', "2024-07")
 
+# --- Helper: Safe API request with retry and throttle ---
+def shopify_request(method, url, headers, **kwargs):
+    for attempt in range(5):
+        try:
+            response = requests.request(method, url, headers=headers, timeout=15, **kwargs)
+            if response.status_code == 429:  # rate limited
+                retry_after = int(response.headers.get("Retry-After", 2))
+                time.sleep(retry_after)
+                continue
+            if 500 <= response.status_code < 600:
+                time.sleep(1)
+                continue
+            return response
+        except requests.exceptions.RequestException:
+            time.sleep(1)
+    return None
+
+
 @app.route('/')
 def index():
     return render_template('bulk_mark.html')
+
 
 @app.route('/api/get_order/<order_name>')
 def get_order_mark_paid(order_name):
@@ -26,91 +46,25 @@ def get_order_mark_paid(order_name):
     shopify_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders.json"
     params = {"status": "any", "name": f"#{order_name}" if not order_name.startswith("#") else order_name}
 
-    try:
-        r = requests.get(shopify_url, headers=headers, params=params)
-        r.raise_for_status()
-        orders = r.json().get('orders', [])
+    r = shopify_request("GET", shopify_url, headers, params=params)
+    if not r:
+        return jsonify({"error": "Request failed"}), 500
 
-        if not orders:
-            return jsonify({"error": "Order not found"}), 404
+    if r.status_code != 200:
+        return jsonify({"error": "Failed to fetch order"}), r.status_code
 
-        order = orders[0]
+    orders = r.json().get('orders', [])
+    if not orders:
+        return jsonify({"error": "Order not found"}), 404
 
-        return jsonify({
-            "order_id": order['id'],
-            "order_name": order['name'],
-            "payment_status": order.get('financial_status'),
-            "total_price": order.get('total_price'),
-            "tags": order.get('tags', "")
-        })
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": "Failed to fetch order", "details": str(e)}), 500
-
-
-@app.route('/api/mark_paid_batch', methods=['POST'])
-def mark_paid_batch():
-    orders = request.json.get('orders', [])
-    results = []
-
-    headers = {
-        "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-        "Content-Type": "application/json"
-    }
-
-    for order_id in orders:
-        # Step 1: Try to get authorization transaction
-        tx_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}/transactions.json"
-        tx_res = requests.get(tx_url, headers=headers)
-
-        if tx_res.status_code != 200:
-            results.append({"order_id": order_id, "status": "error", "message": "Failed to fetch transactions"})
-            continue
-
-        transactions = tx_res.json().get('transactions', [])
-        auth_tx = next((t for t in transactions if t['kind'] == 'authorization'), None)
-
-        if auth_tx:
-            # Use capture
-            capture_payload = {
-                "transaction": {
-                    "parent_id": auth_tx["id"],
-                    "amount": auth_tx["amount"],
-                    "kind": "capture"
-                }
-            }
-        else:
-            # Get order info
-            order_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
-            order_res = requests.get(order_url, headers=headers)
-
-            if order_res.status_code != 200:
-                results.append({"order_id": order_id, "status": "error", "message": "Failed to fetch order"})
-                continue
-
-            order = order_res.json().get('order', {})
-            current_tags = order.get("tags", "")
-
-            # Check if already tagged
-            if "Paid" in [t.strip() for t in current_tags.split(",")]:
-                results.append({"order_id": order_id, "status": "skipped", "message": "Already has 'Paid' tag"})
-                continue
-
-            # Append "Paid" tag
-            new_tags = current_tags + ", Paid" if current_tags else "Paid"
-
-            update_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
-            update_payload = {"order": {"id": order_id, "tags": new_tags}}
-
-            update_res = requests.put(update_url, headers=headers, json=update_payload)
-
-            if update_res.status_code == 200:
-                results.append({"order_id": order_id, "status": "success", "message": "Tag added"})
-            else:
-                msg = update_res.json().get("errors", update_res.text)
-                results.append({"order_id": order_id, "status": "error", "message": str(msg)})
-    return jsonify(results), 200
-
+    order = orders[0]
+    return jsonify({
+        "order_id": order['id'],
+        "order_name": order['name'],
+        "payment_status": order.get('financial_status'),
+        "total_price": order.get('total_price'),
+        "tags": order.get('tags', "")
+    })
 
 
 @app.route('/check_csv_orders', methods=['POST'])
@@ -126,36 +80,97 @@ def check_csv_orders():
     results = []
     for raw_order_number in order_numbers:
         clean_order_number = raw_order_number.lstrip("#")
+        time.sleep(0.4)  # small delay per request
 
-        try:
-            # Call Shopify API using name filter
-            shopify_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders.json"
-            params = {"status": "any", "name": f"#{clean_order_number}"}
-            r = requests.get(shopify_url, headers=headers, params=params)
-            r.raise_for_status()
-            orders = r.json().get('orders', [])
+        shopify_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders.json"
+        params = {"status": "any", "name": f"#{clean_order_number}"}
+        r = shopify_request("GET", shopify_url, headers, params=params)
 
-            if not orders:
-                status = "Order Not Found"
+        if not r or r.status_code != 200:
+            results.append({"order_number": clean_order_number, "status": "Error fetching order"})
+            continue
+
+        orders = r.json().get('orders', [])
+        if not orders:
+            status = "Order Not Found"
+        else:
+            order = orders[0]
+            tags = [t.strip().lower() for t in order.get("tags", "").split(",") if t.strip()]
+            if "paid" in tags:
+                status = "Already Tagged Paid"
+            elif order.get("financial_status") == "paid":
+                status = "Already Paid"
             else:
-                order = orders[0]
-                tags = [t.strip().lower() for t in order.get("tags", "").split(",") if t.strip()]
-                if "paid" in tags:
-                    status = "Already Tagged Paid"
-                elif order.get("financial_status") == "paid":
-                    status = "Already Paid"
-                else:
-                    status = "Valid"
+                status = "Valid"
 
-        except Exception as e:
-            status = f"Error: {str(e)}"
-
-        results.append({
-            "order_number": clean_order_number,
-            "status": status
-        })
+        results.append({"order_number": clean_order_number, "status": status})
 
     return jsonify({"results": results})
+
+
+@app.route('/api/mark_paid_batch', methods=['POST'])
+def mark_paid_batch():
+    orders = request.json.get('orders', [])
+    results = []
+
+    headers = {
+        "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+        "Content-Type": "application/json"
+    }
+
+    for order_id in orders:
+        time.sleep(0.4)  # Prevent hitting Shopify rate limit
+
+        tx_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}/transactions.json"
+        tx_res = shopify_request("GET", tx_url, headers)
+        if not tx_res or tx_res.status_code != 200:
+            results.append({"order_id": order_id, "status": "error", "message": "Failed to fetch transactions"})
+            continue
+
+        transactions = tx_res.json().get('transactions', [])
+        auth_tx = next((t for t in transactions if t['kind'] == 'authorization'), None)
+
+        if auth_tx:
+            capture_payload = {
+                "transaction": {
+                    "parent_id": auth_tx["id"],
+                    "amount": auth_tx["amount"],
+                    "kind": "capture"
+                }
+            }
+            capture_url = tx_url
+            capture_res = shopify_request("POST", capture_url, headers, json=capture_payload)
+            if capture_res and capture_res.status_code == 201:
+                results.append({"order_id": order_id, "status": "success", "message": "Captured payment"})
+            else:
+                results.append({"order_id": order_id, "status": "error", "message": "Capture failed"})
+            continue
+
+        # Otherwise, tag as Paid
+        order_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
+        order_res = shopify_request("GET", order_url, headers)
+        if not order_res or order_res.status_code != 200:
+            results.append({"order_id": order_id, "status": "error", "message": "Failed to fetch order"})
+            continue
+
+        order = order_res.json().get('order', {})
+        current_tags = order.get("tags", "")
+        if "Paid" in [t.strip() for t in current_tags.split(",")]:
+            results.append({"order_id": order_id, "status": "skipped", "message": "Already tagged"})
+            continue
+
+        new_tags = current_tags + ", Paid" if current_tags else "Paid"
+        update_payload = {"order": {"id": order_id, "tags": new_tags}}
+        update_res = shopify_request("PUT", order_url, headers, json=update_payload)
+
+        if update_res and update_res.status_code == 200:
+            results.append({"order_id": order_id, "status": "success", "message": "Tag added"})
+        else:
+            msg = update_res.text if update_res else "Request failed"
+            results.append({"order_id": order_id, "status": "error", "message": msg})
+
+    return jsonify(results), 200
+
 
 @app.route('/api/tag_order', methods=['POST'])
 def tag_single_order():
@@ -166,33 +181,23 @@ def tag_single_order():
         "Content-Type": "application/json"
     }
 
-    try:
-        order_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
-        order_res = requests.get(order_url, headers=headers)
+    order_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
+    order_res = shopify_request("GET", order_url, headers)
+    if not order_res or order_res.status_code != 200:
+        return jsonify(success=False, message="Order not found")
 
-        if order_res.status_code != 200:
-            return jsonify(success=False, message="Order not found")
+    order = order_res.json().get('order', {})
+    current_tags = order.get("tags", "")
+    if "Paid" in [t.strip() for t in current_tags.split(",")]:
+        return jsonify(success=False, message="Already tagged Paid")
 
-        order = order_res.json().get('order', {})
-        current_tags = order.get("tags", "")
+    new_tags = current_tags + ", Paid" if current_tags else "Paid"
+    update_payload = {"order": {"id": order_id, "tags": new_tags}}
+    update_res = shopify_request("PUT", order_url, headers, json=update_payload)
 
-        if "Paid" in [t.strip() for t in current_tags.split(",")]:
-            return jsonify(success=False, message="Already tagged Paid")
-
-        new_tags = current_tags + ", Paid" if current_tags else "Paid"
-        update_payload = {"order": {"id": order_id, "tags": new_tags}}
-        update_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}.json"
-        update_res = requests.put(update_url, headers=headers, json=update_payload)
-
-        if update_res.status_code == 200:
-            return jsonify(success=True)
-        else:
-            return jsonify(success=False, message="Failed to update tags")
-
-    except Exception as e:
-        return jsonify(success=False, message=str(e))
-
-    return jsonify(results)
+    if update_res and update_res.status_code == 200:
+        return jsonify(success=True)
+    return jsonify(success=False, message="Failed to update tags")
 
 
 if __name__ == '__main__':
