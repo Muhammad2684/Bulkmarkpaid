@@ -18,14 +18,20 @@ def shopify_request(method, url, headers, **kwargs):
     for attempt in range(5):
         try:
             response = requests.request(method, url, headers=headers, timeout=15, **kwargs)
-            if response.status_code == 429:  # rate limited
+
+            # Handle rate limit
+            if response.status_code == 429:
                 retry_after = int(response.headers.get("Retry-After", 2))
                 time.sleep(retry_after)
                 continue
+
+            # Retry for server errors
             if 500 <= response.status_code < 600:
                 time.sleep(1)
                 continue
+
             return response
+
         except requests.exceptions.RequestException:
             time.sleep(1)
     return None
@@ -53,7 +59,8 @@ def get_order_mark_paid(order_name):
     if r.status_code != 200:
         return jsonify({"error": "Failed to fetch order"}), r.status_code
 
-    orders = r.json().get('orders', [])
+    data = r.json()
+    orders = data.get('orders', [])
     if not orders:
         return jsonify({"error": "Order not found"}), 404
 
@@ -90,7 +97,12 @@ def check_csv_orders():
             results.append({"order_number": clean_order_number, "status": "Error fetching order"})
             continue
 
-        orders = r.json().get('orders', [])
+        try:
+            orders = r.json().get('orders', [])
+        except Exception:
+            results.append({"order_number": clean_order_number, "status": "Invalid JSON response"})
+            continue
+
         if not orders:
             status = "Order Not Found"
         else:
@@ -119,7 +131,7 @@ def mark_paid_batch():
     }
 
     for order_id in orders:
-        time.sleep(0.4)  # Prevent hitting Shopify rate limit
+        time.sleep(0.5)  # prevent hitting Shopify rate limit
 
         tx_url = f"https://{SHOPIFY_STORE_URL}/admin/api/{SHOPIFY_API_VERSION}/orders/{order_id}/transactions.json"
         tx_res = shopify_request("GET", tx_url, headers)
@@ -138,12 +150,12 @@ def mark_paid_batch():
                     "kind": "capture"
                 }
             }
-            capture_url = tx_url
-            capture_res = shopify_request("POST", capture_url, headers, json=capture_payload)
+            capture_res = shopify_request("POST", tx_url, headers, json=capture_payload)
             if capture_res and capture_res.status_code == 201:
                 results.append({"order_id": order_id, "status": "success", "message": "Captured payment"})
             else:
-                results.append({"order_id": order_id, "status": "error", "message": "Capture failed"})
+                msg = capture_res.text if capture_res else "Capture request failed"
+                results.append({"order_id": order_id, "status": "error", "message": msg})
             continue
 
         # Otherwise, tag as Paid
@@ -166,7 +178,7 @@ def mark_paid_batch():
         if update_res and update_res.status_code == 200:
             results.append({"order_id": order_id, "status": "success", "message": "Tag added"})
         else:
-            msg = update_res.text if update_res else "Request failed"
+            msg = update_res.text if update_res else "Tag request failed"
             results.append({"order_id": order_id, "status": "error", "message": msg})
 
     return jsonify(results), 200
